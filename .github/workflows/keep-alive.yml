@@ -1,0 +1,38 @@
+name: MERCA Keep Alive
+
+on:
+  schedule:
+    # Executa a cada 10 minutos (UTC).
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: merca-keep-alive
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verificar e manter o MERCA ativo
+        env:
+          TARGET_URL: https://merca-lner.onrender.com/
+        run: |
+          echo "A verificar: ${TARGET_URL}"
+          curl \
+            --silent \
+            --show-error \
+            --fail \
+            --location \
+            --max-time 45 \
+            --retry 2 \
+            --retry-delay 5 \
+            --retry-all-errors \
+            --output /dev/null \
+            --write-out "HTTP %{http_code} | tempo total: %{time_total}s\n" \
+            "${TARGET_URL}"
+          echo "Pedido concluído."
